@@ -6,16 +6,18 @@ import random
 import time
 import argparse
 
+import numpy as np
+
 import binary_tree
 import queue
 
 
-def process_one(TreeDepth, node_index_list):
+def process_one(TreeDepth):
     '''each unit of time, I send the identifier of a node chosen independently
     and uniformly at random from all of N nodes. Note that I might send you a
     node that is already marked'''
     test_tree = binary_tree.CompleteTree(TreeDepth)
-    tree_root = test_tree.build_tree()
+    tree_root, node_index_list = test_tree.build_tree()
 
     send_node_list = []
     start = time.time()
@@ -31,44 +33,44 @@ def process_one(TreeDepth, node_index_list):
     return time_last, send_node_list
 
 
-def process_two(TreeDepth, node_index_list):
+def process_two(TreeDepth):
     '''each unit of time, I send the identifier of a node chosen uniformly
     random from those nodes that I have not yet sent'''
     test_tree = binary_tree.CompleteTree(TreeDepth)
-    tree_root = test_tree.build_tree()
+    tree_root, node_index_list = test_tree.build_tree()
 
     send_node_list = []
     start = time.time()
     while 1:
-        ran_idx = random.choice(node_index_list)
+        ran_idx = np.random.choice(node_index_list, replace=False)
         send_node_list.append(ran_idx)
         tree_root = test_tree.mark_node(tree_root, ran_idx)
         mark_num, marked_list = test_tree.all_marked(tree_root)
         if 'all' == mark_num:
             break
-        node_index_list.remove(ran_idx)
     end = time.time()
     time_last = end - start
     return time_last, send_node_list
 
 
-def process_three(TreeDepth, node_index_list):
+def process_three(TreeDepth):
     '''each unit of time I send the identifier of a node chosen uniformly
     random from those nodes that you have not yet marked'''
     test_tree = binary_tree.CompleteTree(TreeDepth)
-    tree_root = test_tree.build_tree()
+    tree_root, node_index_list = test_tree.build_tree()
 
     send_node_list = []
     start = time.time()
     while 1:
-        ran_idx = random.choice(node_index_list)
+        ran_idx = np.random.choice(node_index_list, replace=False)
         send_node_list.append(ran_idx)
         tree_root = test_tree.mark_node(tree_root, ran_idx)
         mark_num, marked_list = test_tree.all_marked(tree_root)
         if 'all' == mark_num:
             break
         for item in marked_list:
-            node_index_list.remove(item)
+            if item in node_index_list:
+                node_index_list.remove(item)
     end = time.time()
     time_last = end - start
     return time_last, send_node_list
@@ -89,15 +91,13 @@ def main(opts):
         print('run with n = {}'.format(n))
         total_time = 0
         TreeDepth = n
-        total_nodes = 2**TreeDepth - 1
-        node_index_list = list(range(1, total_nodes+1))
         for i in range(10):
             if opts.method == 'process_1':
-                time_last, send_node_list = process_one(TreeDepth, node_index_list)
+                time_last, send_node_list = process_one(TreeDepth)
             elif opts.method == 'process_2':
-                time_last, send_node_list = process_two(TreeDepth, node_index_list)
+                time_last, send_node_list = process_two(TreeDepth)
             elif opts.method == 'process_3':
-                time_last, send_node_list = process_three(TreeDepth, node_index_list)
+                time_last, send_node_list = process_three(TreeDepth)
             else:
                 raise NotImplementedError()
             total_time = total_time + time_last

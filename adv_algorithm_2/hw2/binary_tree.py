@@ -42,17 +42,20 @@ class CompleteTree():
 
     def build_tree(self):
         '''BFS way to create the tree'''
+        node_index_list = []
         if self.depth == 0:
-            return None   # return empty tree if depth equals to 0
+            return None, node_index_list   # return empty tree if depth equals to 0
 
         root = Node(1)
         if self.depth == 1:
-            return root
+            node_index_list.append(root.item)
+            return root, node_index_list
 
         nodeCount = self.nodeCount - 1
         count = 2
         travers_queue = queue.Queue()
         travers_queue.enqueue(root)
+        node_index_list.append(root.item)
         while nodeCount:
             tmp_node = travers_queue.dequeue()
             tmp_node.left = Node(count)
@@ -60,6 +63,7 @@ class CompleteTree():
             nodeCount = nodeCount - 1
             tmp_node.left.parent = tmp_node
             travers_queue.enqueue(tmp_node.left)
+            node_index_list.append(tmp_node.left.item)
 
             if nodeCount == 0:
                 break
@@ -69,8 +73,9 @@ class CompleteTree():
             count = count + 1
             nodeCount = nodeCount - 1
             travers_queue.enqueue(tmp_node.right)
+            node_index_list.append(tmp_node.right.item)
 
-        return root
+        return root, node_index_list
 
     def create(self, root, depth):
         if 0 == depth:
@@ -156,8 +161,9 @@ class CompleteTree():
 
 
 def test():
-    cTree = CompleteTree(5)
-    root = cTree.build_tree()
+    cTree = CompleteTree(4)
+    root, node_index_list = cTree.build_tree()
+    print('node_index_list is: ', node_index_list)
     node_count = cTree.count_nodes(root)
 
     index = 0
@@ -172,15 +178,12 @@ def test():
     else:
         print("{} nodes of the tree is not marked".format(mark_num))
 
-    # test mark_node function
-    root = cTree.mark_node(root, 8)
+    # test to make the tree fully marked
+    send_list = [2, 3, 5, 6, 9, 10, 12, 15]
+    for item in send_list:
+        root = cTree.mark_node(root, item)
     mark_num, marked_list = cTree.all_marked(root)
-    print("{} nodes of the tree is not marked/should be 1".format(mark_num))
-    print('marked nodes are: ', marked_list)
-
-    root = cTree.mark_node(root, 16)
-    mark_num, marked_list = cTree.all_marked(root)
-    print("{} nodes of the tree is not marked/should be 3".format(mark_num))
+    print("{} nodes of the tree is marked/should be all".format(mark_num))
     print('marked nodes are: ', marked_list)
 
 
