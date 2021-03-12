@@ -1,7 +1,10 @@
 #!/usr/bin python3.6
+import os
+import sys
 import pdb
 import random
 import time
+import argparse
 
 import binary_tree
 import queue
@@ -14,35 +17,98 @@ def process_one(TreeDepth, node_index_list):
     test_tree = binary_tree.CompleteTree(TreeDepth)
     tree_root = test_tree.build_tree()
 
+    send_node_list = []
     start = time.time()
     while 1:
-        ran_idx = random.choice(node_index_list, replace=False)
+        ran_idx = random.choice(node_index_list)
+        send_node_list.append(ran_idx)
         tree_root = test_tree.mark_node(tree_root, ran_idx)
-        mark_num = test_tree.all_marked(tree_root)
+        mark_num, marked_list = test_tree.all_marked(tree_root)
         if 'all' == mark_num:
             break
     end = time.time()
     time_last = end - start
-    return time_last
+    return time_last, send_node_list
 
 
 def process_two(TreeDepth, node_index_list):
     '''each unit of time, I send the identifier of a node chosen uniformly
     random from those nodes that I have not yet sent'''
-    pass
+    test_tree = binary_tree.CompleteTree(TreeDepth)
+    tree_root = test_tree.build_tree()
+
+    send_node_list = []
+    start = time.time()
+    while 1:
+        ran_idx = random.choice(node_index_list)
+        send_node_list.append(ran_idx)
+        tree_root = test_tree.mark_node(tree_root, ran_idx)
+        mark_num, marked_list = test_tree.all_marked(tree_root)
+        if 'all' == mark_num:
+            break
+        node_index_list.remove(ran_idx)
+    end = time.time()
+    time_last = end - start
+    return time_last, send_node_list
 
 
 def process_three(TreeDepth, node_index_list):
     '''each unit of time I send the identifier of a node chosen uniformly
     random from those nodes that you have not yet marked'''
-    pass
+    test_tree = binary_tree.CompleteTree(TreeDepth)
+    tree_root = test_tree.build_tree()
+
+    send_node_list = []
+    start = time.time()
+    while 1:
+        ran_idx = random.choice(node_index_list)
+        send_node_list.append(ran_idx)
+        tree_root = test_tree.mark_node(tree_root, ran_idx)
+        mark_num, marked_list = test_tree.all_marked(tree_root)
+        if 'all' == mark_num:
+            break
+        for item in marked_list:
+            node_index_list.remove(item)
+    end = time.time()
+    time_last = end - start
+    return time_last, send_node_list
 
 
-def main():
-    TreeDepth = 5
-    total_nodes = 2**TreeDepth - 1
-    node_index_list = list(range(1, total_nodes+1))
+def parseArgs(argv):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-m', '--method', help='choose from process_1/process_2/process_3')
+    parser.add_argument('-o', '--output', help='file to output the results')
+    opts = parser.parse_args()
+    return opts
+
+def main(opts):
+    '''choose to run different processs'''
+    f = open(opts.output, 'w')
+    for n in range(10, 21):
+        print('run with n = {}'.format(n), file=f, flush=True)
+        print('run with n = {}'.format(n))
+        total_time = 0
+        TreeDepth = n
+        total_nodes = 2**TreeDepth - 1
+        node_index_list = list(range(1, total_nodes+1))
+        for i in range(10):
+            if opts.method == 'process_1':
+                time_last, send_node_list = process_one(TreeDepth, node_index_list)
+            elif opts.method == 'process_2':
+                time_last, send_node_list = process_two(TreeDepth, node_index_list)
+            elif opts.method == 'process_3':
+                time_last, send_node_list = process_three(TreeDepth, node_index_list)
+            else:
+                raise NotImplementedError()
+            total_time = total_time + time_last
+        avg_time = total_time/10
+        print('Process: {} run with n={} havs total running time: {:f}, and avg running time: {:f}'.format(opts.method, n, total_time, avg_time), file=f, flush=True)
+        print('send node number = {}'.format(len(send_node_list)), file=f, flush=True)
+        print('Process: {} run with n={} havs total running time: {:f}, and avg running time: {:f}'.format(opts.method, n, total_time, avg_time))
+        print('send node number = {}'.format(len(send_node_list)))
+    f.close()
 
 
 if __name__ == "__main__":
-    main()
+    opts = parseArgs(sys.argv)
+    main(opts)
