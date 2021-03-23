@@ -135,7 +135,7 @@ def run(population_size, bit_len, mu_rate, c_rate, generation_limit, float_bit_l
 def main():
     # setup parameters
     bit_len = 20    # Genome length
-    population_size = 32
+    population_size = 100
     c_rate = 0.5    # crossover rate
     mu_rate = 0.01   # mutation rate
     generation_limit = 100
