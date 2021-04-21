@@ -1,7 +1,8 @@
-"""Class that represents the network to be evolved."""
+#!/usr/bin python3.6
 import random
 import logging
 from train import train_and_score
+
 
 class Network():
     """Represent a network and let us operate on it.
@@ -37,7 +38,7 @@ class Network():
         """
         self.network = network
 
-    def train(self, dataset):
+    def train(self):
         """Train the network and record the accuracy.
 
         Args:
@@ -45,7 +46,7 @@ class Network():
 
         """
         if self.accuracy == 0.:
-            self.accuracy = train_and_score(self.network, dataset)
+            self.accuracy = train_and_score(self.network)
 
     def print_network(self):
         """Print out a network."""
