@@ -6,6 +6,7 @@ from network import Network
 import network as nk
 import copy
 import numpy as np
+import pdb
 
 
 class Optimizer():
@@ -67,8 +68,8 @@ class Optimizer():
             pa_param_bin = pa.get_param()
             pb_param_bin = pb.get_param()
 
-            childa_val = np.zeros(shape=pa_param_bin.shape)
-            childb_val = np.zeros(shape=pa_param_bin.shape)
+            childa_val = np.zeros(shape=pa_param_bin.shape, dtype=np.int)
+            childb_val = np.zeros(shape=pa_param_bin.shape, dtype=np.int)
 
             childa_val[:c_point] = pa_param_bin[:c_point]
             childa_val[c_point:] = pb_param_bin[c_point:]
@@ -85,7 +86,7 @@ class Optimizer():
         count = 0
         children_pool = []
         while count < self.population_size:
-            mates = np.random.choice(parents)
+            mates = np.random.choice(parents, 2)
             parent_a, parent_b = mates
             if np.random.rand() < self.crossover_rate:
                 childs = crossover_one_pair(parent_a, parent_b)

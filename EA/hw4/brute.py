@@ -78,7 +78,7 @@ def generate_network_list(nn_param_choices):
 
 def main():
     """Brute force test every network."""
-    dataset = 'cifar10'
+    dataset = 'mnist'
 
     nn_param_choices = {
         'nb_neurons': [64, 128, 256, 512, 768, 1024],

@@ -3,6 +3,8 @@ import random
 import logging
 from train import train_and_score
 import pdb
+from collections import defaultdict
+import numpy as np
 
 
 def bin2str(bin_list):
@@ -13,7 +15,6 @@ def bin2str(bin_list):
 
 def map_bin2deci(binary_rep):
     nn_param_bin = binary_rep
-    pdb.set_trace()
     nb_neurons = nn_param_bin[:2]
     nb_layers = nn_param_bin[2:4]
     activation = nn_param_bin[4:5]
@@ -29,17 +30,27 @@ def map_bin2deci(binary_rep):
     activation_deci = int(activation_str, 2)
     optimizer_deci = int(optimizer_str, 2)
 
-    return nb_neurons_deci, nb_layers_deci, activation_deci, optimizer_deci
+    deci_dict = {
+                'nb_neurons': nb_neurons_deci,
+                'nb_layers': nb_layers_deci,
+                'activation': activation_deci,
+                'optimizer': optimizer_deci
+            }
+    return deci_dict
 
 
 def map_deci2bin(deci_dict):
     nb_neurons_bin = bin(deci_dict['nb_neurons'])[2:]
+    if len(nb_neurons_bin) == 1:
+        nb_neurons_bin = '0' + nb_neurons_bin
     nb_layers_bin = bin(deci_dict['nb_layers'])[2:]
+    if len(nb_layers_bin) == 1:
+        nb_layers_bin = '0' + nb_layers_bin
+
     activation_bin = bin(deci_dict['activation'])[2:]
     optimizer_bin = bin(deci_dict['optimizer'])[2:]
-
-    tmp = [nb_neurons_bin, nb_layers_bin, activation_bin, optimizer_bin]
-    binary_rep = ''.join(tmp)
+    tmp = nb_neurons_bin + nb_layers_bin + activation_bin + optimizer_bin
+    binary_rep = [int(aaa) for aaa in tmp]
     return binary_rep
 
 
@@ -55,7 +66,7 @@ def get_nn_param_dict():
 
 class Network():
     """Represent a network and let us operate on it"""
-    def __init__(self, nn_param_bin=None):
+    def __init__(self, nn_param_bin=[]):
         """Initialize our network.
         Args:
             nn_param_choices (dict): Parameters for the network, includes:
@@ -73,7 +84,7 @@ class Network():
         self.nn_param_bin = nn_param_bin
 
         # Set network properties
-        if nn_param_bin:
+        if nn_param_bin != []:
             self.network = self.get_deci_dict(nn_param_bin)
 
     def create_random(self):
@@ -81,20 +92,23 @@ class Network():
         nn_param_choices = get_nn_param_dict()
         for key in nn_param_choices:
             self.network[key] = random.choice(nn_param_choices[key])
-        self.nn_param_bin = self.get_binary_rep()
+        tmp = self.get_binary_rep()
+        self.nn_param_bin = np.array(tmp, dtype=np.int)
 
     def get_binary_rep(self):
-        deci_dict = []
+        deci_dict = defaultdict()
+        nn_param_choices = get_nn_param_dict()
         for key in self.network.keys():
-            deci_dict[key] = self.nn_param_choices[key].index(self.network[key])
+            deci_dict[key] = nn_param_choices[key].index(self.network[key])
         binary_rep = map_deci2bin(deci_dict)
         return binary_rep
 
     def get_deci_dict(self, nn_param_bin):
+        nn_param_choices = get_nn_param_dict()
         nn_param_deci = map_bin2deci(nn_param_bin)
-        network = {}
+        network = defaultdict()
         for key in nn_param_deci.keys():
-            network[key] = self.nn_param_choices[nn_param_deci[key]]
+            network[key] = nn_param_choices[key][nn_param_deci[key]]
         return network
 
     def get_param(self):

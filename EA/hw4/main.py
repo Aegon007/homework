@@ -3,6 +3,7 @@
 import logging
 from optimizer import Optimizer
 from tqdm import tqdm
+import pdb
 
 import network as nk
 
@@ -94,8 +95,8 @@ def print_networks(networks):
 
 def main():
     """Evolve a network."""
-    generations = 2  # Number of times to evole the population.
-    population_size = 2  # Number of networks in each generation.
+    generations = 10  # Number of times to evole the population.
+    population_size = 15  # Number of networks in each generation.
     bit_len = 6   # 2 bits for nb_neuron, 2 bits for nb_layer, 1 bit for activation, 1 bit for optimizer
 
     logging.info("***Evolving %d generations with population size %d***" % (generations, population_size))
