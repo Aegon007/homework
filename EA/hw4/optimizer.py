@@ -3,40 +3,28 @@ from functools import reduce
 from operator import add
 import random
 from network import Network
+import network as nk
+import copy
+import numpy as np
 
 
 class Optimizer():
     """Class that implements genetic algorithm for MLP optimization."""
 
-    def __init__(self, nn_param_choices, retain=0.4, random_select=0.1, mutate_chance=0.2):
-        """Create an optimizer.
-        Args:
-            nn_param_choices (dict): Possible network paremters
-            retain (float): Percentage of population to retain after
-                each generation
-            random_select (float): Probability of a rejected network
-                remaining in the population
-            mutate_chance (float): Probability a network will be
-                randomly mutated
-        """
-        self.mutate_chance = mutate_chance
-        self.random_select = random_select
-        self.retain = retain
-        self.nn_param_choices = nn_param_choices
+    def __init__(self, bit_len, population_size):
+        """Create an optimizer"""
+        self.population_size = population_size
+        self.mutate_rate = 0.01
+        self.crossover_rate = 0.5
+        self.bit_len = bit_len
+        self.nn_param_choices = nk.get_nn_param_dict()
 
-
-    def create_population(self, count):
-        """Create a population of random networks.
-        Args:
-            count (int): Number of networks to generate, aka the
-                size of the population
-        Returns:
-            (list): Population of network objects
-        """
+    def create_population(self):
+        """Create a population of random networks"""
         pop = []
-        for _ in range(0, count):
+        for _ in range(0, self.population_size):
             # Create a random network.
-            network = Network(self.nn_param_choices)
+            network = Network()
             network.create_random()
 
             # Add the network to our population.
@@ -49,111 +37,85 @@ class Optimizer():
         """Return the accuracy, which is our fitness function."""
         return network.accuracy
 
-    def grade(self, pop):
-        """Find average fitness for a population.
-        Args:
-            pop (list): The population of networks
-        Returns:
-            (float): The average accuracy of the population
-        """
-        summed = reduce(add, (self.fitness(network) for network in pop))
-        return summed / float((len(pop)))
+    def mutate(self, population):
+        """Randomly mutate one part of the network"""
+        # support function mutate one
+        def mutate_one(network):
+            network_param_bin = network.get_param()
+            new_network_param_bin = copy.deepcopy(network_param_bin)
 
-    def breed(self, mother, father):
-        """Make two children as parts of their parents.
-        Args:
-            mother (dict): Network parameters
-            father (dict): Network parameters
-        Returns:
-            (list): Two network objects
-        """
-        children = []
-        for _ in range(2):
+            for i in range(len(network_param_bin)):
+                if np.random.rand() < self.mutate_rate:
+                    new_network_param_bin[i] = 1 - network_param_bin[i]
 
-            child = {}
+            new_network = Network(new_network_param_bin)
+            return new_network
 
-            # Loop through the parameters and pick params for the kid.
-            for param in self.nn_param_choices:
-                child[param] = random.choice([mother.network[param], father.network[param]])
+        new_population = []
+        for p in range(self.population_size):
+            network = population[p]
+            new_network = mutate_one(network)
+            new_population.append(new_network)
 
-            # Now create a network object.
-            network = Network(self.nn_param_choices)
-            network.create_set(child)
+        return new_population
 
-            # Randomly mutate some of the children.
-            if self.mutate_chance > random.random():
-                network = self.mutate(network)
+    def crossover(self, parents):
+        def crossover_one_pair(pa, pb):
+            bit_len = self.bit_len
+            c_point = np.random.randint(bit_len)
 
-            children.append(network)
+            pa_param_bin = pa.get_param()
+            pb_param_bin = pb.get_param()
 
-        return children
+            childa_val = np.zeros(shape=pa_param_bin.shape)
+            childb_val = np.zeros(shape=pa_param_bin.shape)
 
-    def mutate(self, network):
-        """Randomly mutate one part of the network.
-        Args:
-            network (dict): The network parameters to mutate
-        Returns:
-            (Network): A randomly mutated network object
-        """
-        # Choose a random key.
-        mutation = random.choice(list(self.nn_param_choices.keys()))
+            childa_val[:c_point] = pa_param_bin[:c_point]
+            childa_val[c_point:] = pb_param_bin[c_point:]
 
-        # Mutate one of the params.
-        network.network[mutation] = random.choice(self.nn_param_choices[mutation])
+            childb_val[:c_point] = pb_param_bin[:c_point]
+            childb_val[c_point:] = pa_param_bin[c_point:]
 
-        return network
+            childa_network = Network(childa_val)
+            childb_network = Network(childb_val)
 
-    def evolve(self, pop):
-        """Evolve a population of networks.
-        Args:
-            pop (list): A list of network parameters
-        Returns:
-            (list): The evolved population of networks
+            offsprings = [childa_network, childb_network]
+            return offsprings
 
-        """
-        # Get scores for each network.
-        graded = [(self.fitness(network), network) for network in pop]
+        count = 0
+        children_pool = []
+        while count < self.population_size:
+            mates = np.random.choice(parents)
+            parent_a, parent_b = mates
+            if np.random.rand() < self.crossover_rate:
+                childs = crossover_one_pair(parent_a, parent_b)
+            else:
+                childs = [copy.deepcopy(parent_a), copy.deepcopy(parent_b)]
+            children_pool.extend(childs)
+            count += 2
+        next_generation = children_pool[:self.population_size]
+        return next_generation
 
-        # Sort on the scores.
-        graded = [x[1] for x in sorted(graded, key=lambda x: x[0], reverse=True)]
+    def select(self, proportional_list, population):
+        population_size = self.population_size
+        chosen = []
+        for n in range(population_size):
+            r = random.random()
+            for (i, individual) in enumerate(population):
+                if r <= proportional_list[i]:
+                    chosen.append(copy.deepcopy(individual))
+                    break
+        return chosen
 
-        # Get the number we want to keep for the next gen.
-        retain_length = int(len(graded)*self.retain)
+    def evolve(self, population, proportional_list):
+        """Evolve a population of networks"""
+        # select
+        parents = self.select(proportional_list, population)
 
-        # The parents are every network we want to keep.
-        parents = graded[:retain_length]
+        # crossover
+        offsprings = self.crossover(parents)
 
-        # For those we aren't keeping, randomly keep some anyway.
-        for individual in graded[retain_length:]:
-            if self.random_select > random.random():
-                parents.append(individual)
-
-        # Now find out how many spots we have left to fill.
-        parents_length = len(parents)
-        desired_length = len(pop) - parents_length
-        children = []
-
-        # Add children, which are bred from two remaining networks.
-        while len(children) < desired_length:
-
-            # Get a random mom and dad.
-            male = random.randint(0, parents_length-1)
-            female = random.randint(0, parents_length-1)
-
-            # Assuming they aren't the same network...
-            if male != female:
-                male = parents[male]
-                female = parents[female]
-
-                # Breed them.
-                babies = self.breed(male, female)
-
-                # Add the children one at a time.
-                for baby in babies:
-                    # Don't grow larger than desired length.
-                    if len(children) < desired_length:
-                        children.append(baby)
-
-        parents.extend(children)
+        # mutation
+        population = self.mutate(offsprings)
 
         return parents
