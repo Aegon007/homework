@@ -95,6 +95,9 @@ class Network():
         tmp = self.get_binary_rep()
         self.nn_param_bin = np.array(tmp, dtype=np.int)
 
+    def create_set(self, network_param):
+        self.network = network_param
+
     def get_binary_rep(self):
         deci_dict = defaultdict()
         nn_param_choices = get_nn_param_dict()

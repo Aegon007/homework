@@ -11,16 +11,11 @@ logging.basicConfig(
     filename='brute-log.txt'
 )
 
-def train_networks(networks, dataset):
-    """Train each network.
-
-    Args:
-        networks (list): Current population of networks
-        dataset (str): Dataset to use for training/evaluating
-    """
+def train_networks(networks):
+    """Train each network"""
     pbar = tqdm(total=len(networks))
     for network in networks:
-        network.train(dataset)
+        network.train()
         network.print_network()
         pbar.update(1)
     pbar.close()
@@ -32,26 +27,13 @@ def train_networks(networks, dataset):
     print_networks(networks[:5])
 
 def print_networks(networks):
-    """Print a list of networks.
-
-    Args:
-        networks (list): The population of networks
-
-    """
+    """Print a list of networks"""
     logging.info('-'*80)
     for network in networks:
         network.print_network()
 
 def generate_network_list(nn_param_choices):
-    """Generate a list of all possible networks.
-
-    Args:
-        nn_param_choices (dict): The parameter choices
-
-    Returns:
-        networks (list): A list of network objects
-
-    """
+    """Generate a list of all possible networks"""
     networks = []
 
     # This is silly.
@@ -78,8 +60,6 @@ def generate_network_list(nn_param_choices):
 
 def main():
     """Brute force test every network."""
-    dataset = 'mnist'
-
     nn_param_choices = {
         'nb_neurons': [64, 128, 256, 512, 768, 1024],
         'nb_layers': [1, 2, 3, 4],
@@ -92,7 +72,7 @@ def main():
 
     networks = generate_network_list(nn_param_choices)
 
-    train_networks(networks, dataset)
+    train_networks(networks)
 
 if __name__ == '__main__':
     main()
