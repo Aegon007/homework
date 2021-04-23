@@ -62,7 +62,7 @@ def generate(generations, population_size, bit_len):
         logging.info("***Doing generation %d of %d***" % (i + 1, generations))
 
         # Train and get accuracy for networks.
-        networks = train_networks(networks)
+        train_networks(networks)
 
         # evaluate
         proportional_list, fitness_list = calculate_fitness(networks)
@@ -70,7 +70,7 @@ def generate(generations, population_size, bit_len):
         avg_fit_score = sum(fitness_list) / len(fitness_list)
 
         # Print out the average accuracy each generation.
-        logging.info("most fit score is: {:f}\taverage fit score is: {:f}" % (most_fit_score, avg_fit_score))
+        logging.info("most fit score is: {:f}\taverage fit score is: {:f}".format(most_fit_score, avg_fit_score))
         logging.info('-'*80)
 
         networks = optimizer.evolve(networks, proportional_list)
@@ -94,8 +94,8 @@ def print_networks(networks):
 
 def main():
     """Evolve a network."""
-    generations = 10  # Number of times to evole the population.
-    population_size = 20  # Number of networks in each generation.
+    generations = 2  # Number of times to evole the population.
+    population_size = 2  # Number of networks in each generation.
     bit_len = 6   # 2 bits for nb_neuron, 2 bits for nb_layer, 1 bit for activation, 1 bit for optimizer
 
     logging.info("***Evolving %d generations with population size %d***" % (generations, population_size))
