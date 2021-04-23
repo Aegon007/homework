@@ -81,6 +81,7 @@ class Network():
         nn_param_choices = get_nn_param_dict()
         for key in nn_param_choices:
             self.network[key] = random.choice(nn_param_choices[key])
+        self.nn_param_bin = self.get_binary_rep()
 
     def get_binary_rep(self):
         deci_dict = []
