@@ -108,6 +108,7 @@ def plot_graph(param_list, acc_list, save_path, utility_name):
     plt.savefig(save_path)
     plt.show(block=False)
     plt.figure()
+    plt.close('all')
 
 
 def main():
