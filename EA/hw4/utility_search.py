@@ -128,7 +128,7 @@ def main():
         max_acc = generate(generations, population_size, bit_len, mu_rate=mu, c_rate=0.5)
         acc_list.append(max_acc)
     save_path = os.path.join(save_dir, 'mu_search.png')
-    plot_graph(mu_list, acc_list, save_path)
+    plot_graph(mu_list, acc_list, save_path, 'mutation_rate')
 
     c_list = [0.1, 0.2, 0.3, 0.4, 0.5]
     acc_list = []
@@ -138,7 +138,7 @@ def main():
         max_acc = generate(generations, population_size, bit_len, mu_rate=mu, c_rate=c)
         acc_list.append(max_acc)
     save_path = os.path.join(save_dir, 'c_search.png')
-    plot_graph(mu_list, acc_list, save_path)
+    plot_graph(mu_list, acc_list, save_path, 'crossover_rate')
 
 
 if __name__ == '__main__':
