@@ -12,11 +12,11 @@ import pdb
 class Optimizer():
     """Class that implements genetic algorithm for MLP optimization."""
 
-    def __init__(self, bit_len, population_size):
+    def __init__(self, bit_len, population_size, mutate_rate=0.01, crossover_rate=0.5):
         """Create an optimizer"""
         self.population_size = population_size
-        self.mutate_rate = 0.01
-        self.crossover_rate = 0.5
+        self.mutate_rate = mutate_rate
+        self.crossover_rate = crossover_rate
         self.bit_len = bit_len
         self.nn_param_choices = nk.get_nn_param_dict()
 
